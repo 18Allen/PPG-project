@@ -93,6 +93,10 @@ for l= 1:N_sub
     for j = bad_list
         idx = locs > (j-1)*len_orig*upsampling_rate & locs <= (j)*len_orig*upsampling_rate;
         cal_list = find(idx(1:end-1)|idx(2:end));
+        if length(cal_list)<1
+            % For subject 20
+            continue;
+        end
         s_RRI = cal_list(1); t_RRI = cal_list(end);
         range_imp = (len_pad+s_RRI)-len_pad:(len_pad+t_RRI)+5;
 %         range_imp = (len_pad+s_RRI)-len_pad:(len_pad+t_RRI)+len_pad;
