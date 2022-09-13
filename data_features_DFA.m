@@ -114,6 +114,15 @@ for l= 1:N_sub
     
     
     features{l}(m,53) = HFD(RRI,20);
+    
+    % PDFA
+    P = PDFA(RRI(end-63:end),64,1);
+    p =  polyfit(linspace(0,1,64), P, 1);
+    features{l}(m,24) = p(1);
+    
+    % ApEn of binary RRI diff in a interval of TBD(right now 5 min)
+    features{l}(m,24) = ApEn(1,0.2*std(diff(RRI) > 0),diff(RRI) > 0,1);
+    %features{l}(m,24) = ApEn(1,0.2 > 0),diff(RRI) > 0,1);
     end
     save('features&labels.mat','features','PPG_label');
 
