@@ -6,7 +6,6 @@ clear all;
 %     writematrix(RRI_data{i}, ['sub_',num2str(i),'.txt'], 'Delimiter', 'space');
 % end
 %%
-
 load('./data/allsubPPG_fs200.mat');
 load('./data/allsubLabel.mat');
 load('./processed_data_all.mat')
