@@ -34,6 +34,7 @@ orig_locs_data = cell([N_sub,1]);
 locs_data = cell([N_sub,1]);
 IHR_data = cell([N_sub,1]);
 RRI_data = cell([N_sub,1]);
+RRI_res_data = cell([N_sub,1]);
 tfr_data = cell([N_sub,1]);
 tfrtic_data = cell([N_sub,1]);
 adapt_RRfreq = cell([N_sub,1]);
@@ -125,7 +126,14 @@ for l= 1:N_sub
     xx = 1:(upsampling_rate/4):length(pleth);
     IHR = spline(locs,[IF,IF(end)],xx);
     IHR(1:12) = 1;IHR(end-12:end) = 1;
-
+    %% RR_res for WDFA
+    % WDFA requires to take the sample 
+    IF = RRI;
+    xx = 1:(upsampling_rate/20):length(pleth);
+    RRI_res = spline(locs,[IF,IF(end)],xx);
+    RRI_res(1:12) = 1;RRI_res(end-12:end) = 1;
+    RRI_res = RRI_res(1:20:end);
+    
     %% STFT of whole night IHR
     IHRtmp = IHR - mean(IHR);
     fs_STFT = 4;
@@ -167,11 +175,11 @@ for l= 1:N_sub
     locs_data{l} = locs;
     IHR_data{l} = IHR;
     RRI_data{l} = RRI;
-    
+    RRI_res_data{l} = RRI_res;
 
 %%
 
 %    save('processed_data.mat','orig_locs_data','locs_data','IHR_data','RRI_data','tfr_data','tfrtic_data');
-    save('processed_data.mat','orig_locs_data','locs_data','IHR_data','RRI_data','adapt_RRfreq');
+    save('processed_data.mat','orig_locs_data','locs_data','IHR_data','RRI_data','adapt_RRfreq','RRI_res_data');
 
 end
