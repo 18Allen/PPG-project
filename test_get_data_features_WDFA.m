@@ -8,7 +8,7 @@ clear all;
 %%
 load('./data/allsubPPG_fs200.mat');
 load('./data/allsubLabel.mat');
-load('./processed_data_all.mat')
+load('./processed_data.mat')
 %addpath('../SST_TF_analysis/TF_anaylsis');
 addpath('./lib')
 %% Data parsing--------------------------------------
@@ -60,10 +60,10 @@ for i =1:N_sub
     % Get WDFA curve from RRI_res_data
     RRI_res = RRI_res_data{i};
     WDFA_curves{i} = cell([4,1]);
-    WDFA_curves{i}{1} = WDFA_fun(RRI_res,30,30);
-    WDFA_curves{i}{2} = WDFA_fun(RRI_res,30,90);
-    WDFA_curves{i}{3} = WDFA_fun(RRI_res,90,30);
-    WDFA_curves{i}{4} = WDFA_fun(RRI_res,90,90);
+    WDFA_curves{i}{1} = WDFA_fun(RRI_res,30,30,1);
+    WDFA_curves{i}{2} = WDFA_fun(RRI_res,30,90,1);
+    WDFA_curves{i}{3} = WDFA_fun(RRI_res,90,30,1);
+    WDFA_curves{i}{4} = WDFA_fun(RRI_res,90,90,1);
     
     WDFA_list{i} = cell([4,1]);
     for j = 1:4
