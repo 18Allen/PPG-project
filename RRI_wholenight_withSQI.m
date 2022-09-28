@@ -3,14 +3,14 @@ clear;
 %% Load data, tools
 load('./data/allsubPPG_fs200_test.mat');
 load('./data/allsubLabel_test.mat');
-%addpath('../SST_TF_analysis/TF_anaylsis');
+%%
 addpath('./lib')
 %% Data parsing--------------------------------------
 %% Set parameters
 N_sub = size(allsubLabel,1);
 PPG_data = cell(size(allsubLabel));
 PPG_label = cell(size(allsubLabel));
-fs = 200;
+fs = 200; 
 len_epoch = 30; %in second
 %% Parse the data to epoch interval
 for i =1:N_sub
@@ -42,7 +42,6 @@ adapt_RRfreq = cell([N_sub,1]);
 %%  TF analysis
 for l= 1:N_sub
     l
-    
     %% RR analysis----------------------------------------
     PPG = PPG_data{l};
     [b, a] = butter(2, [0.5, 15] / (sampling_rate / 2));
@@ -116,7 +115,7 @@ for l= 1:N_sub
 %     ylabel('RRI(s)')
 %     legend('pre','imp')
 %     hold off
-    
+
     RRI = Imp_RRI;
     clear test_RRI sig cal_list idx Imp_RRI bad_list idx_bad range_imp test_PPG
     clear entropy_list idx_bad_cycles
@@ -131,10 +130,10 @@ for l= 1:N_sub
     IF = RRI;
     xx = 1:(upsampling_rate/20):length(pleth);
     RRI_res = spline(locs,[IF,IF(end)],xx);
-    RRI_res(1:12) = 1;RRI_res(end-12:end) = 1;
+    RRI_res(1:80) = 1;RRI_res(end-80:end) = 1;
     RRI_res = RRI_res(1:20:end);
     
-    %% STFT of whole night IHR
+     %% STFT of whole night IHR
     IHRtmp = IHR - mean(IHR);
     fs_STFT = 4;
     LowFreq = 0.001/fs_STFT;
