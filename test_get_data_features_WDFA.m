@@ -42,7 +42,7 @@ RRI_list = cell(size(allsubLabel));
 WDFA_list = cell(size(allsubLabel));
 WDFA_curves = cell(size(allsubLabel)); %four combination n and sigma
 s = round(len_epoch/len_orig);
-for i =1:N_sub
+for i =1:1%N_sub
     i
     %PPG
     PPG_data{i} = buffer(allsubPPG{i},fs*len_epoch,fs*(len_epoch-len_orig))';
@@ -83,7 +83,7 @@ end
 
 %%  Analysis
 n_features = 4;
-for l= 1:N_sub
+for l= 1:1%N_sub
     WDFA_features{l} = zeros([size(PPG_data{l},1),n_features]);
     
     for m = 1:size(PPG_data{l},1)
@@ -95,7 +95,7 @@ for l= 1:N_sub
         end
     %% WDFA feature
     for j = 1:4
-    WDFA_features{l}(m,j) = max(WDFAs(j));
+    WDFA_features{l}(m,j) = max(WDFAs{j});
     end
     
     end

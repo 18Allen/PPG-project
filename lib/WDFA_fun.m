@@ -43,7 +43,7 @@ zn = y - y_hat';
 mu1 = cumsum(zn);
 mu2 = cumsum(zn.^2);
 
-idx = sigma+1: length(W)-sigma;
+idx = sigma+1: length(D)-sigma;
 W(idx) = (1/(2*sigma))*(mu2(idx+sigma) - mu2(idx -sigma)) ...
     - (1/(2*sigma))^2*(mu1(idx+sigma) - mu1(idx -sigma)).^2;
 
