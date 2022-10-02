@@ -16,6 +16,8 @@ addpath('./lib')
 N_sub = size(allsubLabel,1);
 PPG_data = cell(size(allsubLabel));
 PPG_label = cell(size(allsubLabel));
+PPG_label_index = cell(size(allsubLabel));
+
 fs = 200;
 len_epoch = 300; %in second, 5 min
 len_orig = 30;
@@ -39,14 +41,18 @@ n_features = 52; %1~15 Traditional time,16~20 Traditional freq, 21~23 DFA
 %% Parse the data to epoch interval
 IHR_list = cell(size(allsubLabel));
 RRI_list = cell(size(allsubLabel));
-s = round(len_epoch/len_orig);
+s = round(len_epoch/len_orig/2);
 for i =1:N_sub
     i
     %PPG
     PPG_data{i} = buffer(allsubPPG{i},fs*len_epoch,fs*(len_epoch-len_orig))';
-    PPG_data{i} = PPG_data{i}(s:end,:);
+    PPG_data{i} = PPG_data{i}(s:end-s+1,:);
     %Label
-    PPG_label{i} = allsubLabel{i}(s:end);
+    PPG_label{i} = allsubLabel{i}(s:end-s+1);
+    %Index (Unused = 0, Used = 1)
+    index = ones(size(allsubLabel{i}));
+    index([1:s-1 end-s+2:end]) = 0;
+    PPG_label_index{i} = index;
     %IHR
     IHR_list{i} = IHR_data{i}(2:end);%Because the original one will have 1 extra second
     IHR_list{i} = buffer(IHR_list{i},len_epoch*4,(len_epoch-len_orig)*4)';
@@ -70,7 +76,7 @@ for i =1:N_sub
 end
 
 %%  Analysis
-n_features = 45;
+n_features = 55;
 for l= 1:N_sub
     features{l} = zeros([size(PPG_data{l},1),n_features]);
     
@@ -110,19 +116,18 @@ for l= 1:N_sub
     features{l}(m,51) = alpha1;
     features{l}(m,52) = alpha2;
     
-    
-    
+    % Higuchi fractal dimension
     features{l}(m,53) = HFD(RRI,20);
     
     % PDFA
     P = PDFA(RRI(end-63:end),64,1);
     p =  polyfit(linspace(0,1,64), P, 1);
-    features{l}(m,24) = p(1);
+    features{l}(m,54) = p(1);
     
     % ApEn of binary RRI diff in a interval of TBD(right now 5 min)
-    features{l}(m,24) = ApEn(1,0.2*std(diff(RRI) > 0),diff(RRI) > 0,1);
+    features{l}(m,55) = ApEn(1,0.2*std(diff(RRI) > 0),diff(RRI) > 0,1);
     %features{l}(m,24) = ApEn(1,0.2 > 0),diff(RRI) > 0,1);
     end
-    save('features&labels.mat','features','PPG_label');
+    save('features&labels.mat','features','PPG_label','PPG_label_index');
 
 end

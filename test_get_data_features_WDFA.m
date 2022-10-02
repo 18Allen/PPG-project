@@ -16,6 +16,8 @@ addpath('./lib')
 N_sub = size(allsubLabel,1);
 PPG_data = cell(size(allsubLabel));
 PPG_label = cell(size(allsubLabel));
+PPG_label_index = cell(size(allsubLabel));
+
 fs = 200;
 len_epoch = 300; %in second, 5 min
 len_orig = 30;
@@ -41,14 +43,18 @@ IHR_list = cell(size(allsubLabel));
 RRI_list = cell(size(allsubLabel));
 WDFA_list = cell(size(allsubLabel));
 WDFA_curves = cell(size(allsubLabel)); %four combination n and sigma
-s = round(len_epoch/len_orig);
+s = round(len_epoch/len_orig/2);
 for i =1:1%N_sub
     i
     %PPG
     PPG_data{i} = buffer(allsubPPG{i},fs*len_epoch,fs*(len_epoch-len_orig))';
-    PPG_data{i} = PPG_data{i}(s:end,:);
+    PPG_data{i} = PPG_data{i}(s:end-s+1,:);
     %Label
-    PPG_label{i} = allsubLabel{i}(s:end);
+    PPG_label{i} = allsubLabel{i}(s:end-s+1);
+    %Index
+    index = ones(size(allsubLabel{i}));
+    index([1:s-1 end-s+2:end]) = 0;
+    PPG_label_index{i} = index;
     %IHR
     IHR_list{i} = IHR_data{i}(2:end);%Because the original one will have 1 extra second
     IHR_list{i} = buffer(IHR_list{i},len_epoch*4,(len_epoch-len_orig)*4)';
@@ -68,7 +74,7 @@ for i =1:1%N_sub
     WDFA_list{i} = cell([4,1]);
     for j = 1:4
         WDFA_list{i}{j} = buffer(WDFA_curves{i}{j},len_epoch,(len_epoch-len_orig))';
-        WDFA_list{i}{j} = WDFA_list{i}{j}(s:end,:);
+        WDFA_list{i}{j} = WDFA_list{i}{j}(s:end-s+1,:);
     end
     
     % RRI
@@ -76,7 +82,6 @@ for i =1:1%N_sub
     for j = 1:length(PPG_label{i})
         idx = find(locs_data{i} > (j-1)*len_orig*upsampling_rate & locs_data{i} <= (len_epoch+(j-1)*len_orig)*upsampling_rate);
         RRI_list{i}{j} = RRI_data{i}(idx(1:end-1));
-        
     end
     
 end
