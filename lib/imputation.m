@@ -1,6 +1,7 @@
 function [Imp] = imputation(sig, fs)
 % find the calibration segments (assume knowledge 0)
 % For convienience, sig == 111 means those that should not be taken
+%%
 tmp = sig==0 ; % 
 [M, start] = regexp(sprintf('%i', tmp'), '1+', 'match') ;
 LEN = zeros(size(M)) ;
@@ -15,7 +16,9 @@ end
 alpha = 5; % length of left&right window
 FLen = fs*alpha ; % alpha
 Imp = sig ;
-if find(LEN > 0.1*fs) ;
+avg_val = mean(sig(sig ~= 0)); % for the case where FIT does not exists
+%%
+if find(LEN > 0.1*fs);
     %fprintf(['\t*** Handle calibration\n']) ;
 
     QQ = find(LEN > 0.1*fs) ;
@@ -25,9 +28,8 @@ if find(LEN > 0.1*fs) ;
 %     for qi = 1:length(QQ)
 %         idx_bad_cycles = [idx_bad_cycles, start(QQ(qi)): start(QQ(qi)) + LEN(QQ(qi)) - 1 ];
 %     end
-    
     for qi = 1: length(QQ)
-
+        FITexists = 0;
         tmp = QQ(qi) ;
 
         % correct those zeros in the recording
@@ -62,6 +64,8 @@ if find(LEN > 0.1*fs) ;
             if sum(ismember([ppp: ppp+llen + (LEN(tmp)-1) + rlen],idx_bad_cycles)) > 0
                 continue
             end
+            FITexists = 1;
+            
             X0 = sig([patternL patternR]) ;
             
             
@@ -73,8 +77,10 @@ if find(LEN > 0.1*fs) ;
                 FIT = sig(ppp+llen: ppp+llen+LEN(tmp)-1);
             end
         end
-        Imp(cal) = FIT ;
+        if FITexists == 1
+            Imp(cal) = FIT ;
+        else
+            Imp(cal) = ones(size(cal))*avg_val;
+        end
     end
 end
-
-

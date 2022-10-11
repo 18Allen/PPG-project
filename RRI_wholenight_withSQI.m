@@ -1,8 +1,11 @@
 %% Workspace Hygiene
 clear;
 %% Load data, tools
-load('./data/allsubPPG_fs200_test.mat');
-load('./data/allsubLabel_test.mat');
+%load('./data/allsubPPG_fs200_test.mat');
+%load('./data/allsubLabel_test.mat');
+
+load('./data/allsubPPG_trouble.mat');
+load('./data/allsubLabel_trouble.mat');
 %%
 addpath('./lib')
 %% Data parsing--------------------------------------
@@ -51,7 +54,7 @@ for l= 1:N_sub
     [aRRI,locs,~,~] = RRI_adjust_new(diff(orig_locs)/upsampling_rate,0.4,2,orig_locs(1)/upsampling_rate,upsampling_rate);
     RRI = diff(locs)./upsampling_rate;
     
-    %%
+    %% Use entropy to classify bad signal segment of len_orig long
     len_orig = 10;
     test_PPG = buffer(allsubPPG{l},len_orig*sampling_rate)';
     entropy_list = zeros([1,size(test_PPG,1)]);
@@ -61,10 +64,12 @@ for l= 1:N_sub
     for j = 1:size(test_PPG,1)
        [~,entropy_list(j)] = SQI_eval(test_PPG(j,:),sampling_rate*len_orig,sampling_rate*len_orig);
     end
-    
+    %%
     % Make idx_bad_RRI
     bad_list = find(entropy_list < threshold_entropy);
     idx_bad_cycles = zeros(size(locs_data{l}));
+    
+    % Set RRI in those segment to 0 for imputation
     test_RRI = RRI;
     for j = bad_list
         idx = locs > (j-1)*len_orig*upsampling_rate & locs <= (j)*len_orig*upsampling_rate;
@@ -93,11 +98,15 @@ for l= 1:N_sub
     for j = bad_list
         idx = locs > (j-1)*len_orig*upsampling_rate & locs <= (j)*len_orig*upsampling_rate;
         cal_list = find(idx(1:end-1)|idx(2:end));
+        
+        % If there's no RRI to impute, skip.
         if length(cal_list)<1
             % For subject 20
             continue;
         end
         s_RRI = cal_list(1); t_RRI = cal_list(end);
+        % range: pad |s_RRI~t_RRI| 5 for alpha in imputation and we don't
+        % take too much info from the future data
         range_imp = (len_pad+s_RRI)-len_pad:(len_pad+t_RRI)+5;
 %         range_imp = (len_pad+s_RRI)-len_pad:(len_pad+t_RRI)+len_pad;
         sig = test_RRI(range_imp);

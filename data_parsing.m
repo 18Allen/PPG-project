@@ -1,8 +1,10 @@
 %% Workspace Hygiene
 clear all;
 %% Load data, tools
-load('./data/allsubPPG_fs200_test.mat');
-load('./data/allsubLabel_test.mat');
+%pwd_name = 'D:\2022spring\URP\HRV\PPG-project';
+%cd(pwd_name);
+%load('./data/allsubPPG_fs200_test.mat');
+%load('./data/allsubLabel_test.mat');
 %addpath('../SST_TF_analysis/TF_anaylsis');
 addpath('./lib')
 %% Data parsing--------------------------------------
