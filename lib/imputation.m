@@ -64,7 +64,6 @@ if find(LEN > 0.1*fs);
             if sum(ismember([ppp: ppp+llen + (LEN(tmp)-1) + rlen],idx_bad_cycles)) > 0
                 continue
             end
-            FITexists = 1;
             
             X0 = sig([patternL patternR]) ;
             
@@ -72,9 +71,10 @@ if find(LEN > 0.1*fs);
             % find the most similar pattern from the remainig signal for
             % imputation
             dd = norm(X0 - X) ;
-            if dd < Dist ;
+            if dd < Dist ;            
                 Dist = dd ; pivot = ppp ;
                 FIT = sig(ppp+llen: ppp+llen+LEN(tmp)-1);
+                FITexists = 1;
             end
         end
         if FITexists == 1
