@@ -19,14 +19,14 @@ PPG_label = cell(size(allsubLabel));
 PPG_label_index = cell(size(allsubLabel));
 
 fs = 200;
-len_epoch = 300; %in second, 5 min
+len_epoch = 270; %in second, 4.5 min
 len_orig = 30;
 
 % basic parameters for STFT 
 sampling_rate = 200;
 
 % Loop parameters
-n_class = 5;
+n_class = 5; 
 stats = cell([n_class,3]);
 
 % HRV
@@ -34,7 +34,7 @@ upsampling_rate = 500; % For PPG_peak_detection
 
 % Generated feature
 features = cell([n_class,1]);
-n_features = 59; 
+n_features = 59;  % TBD
 %1~44 Traditional time,45~49 Traditional freq, 50~52 DFA
 %53 Higuchi fractal dimension, 54 PDFA, 55 ApEn, 56~59 WDFA
 
@@ -43,8 +43,8 @@ n_features = 59;
 %% Parse the data to epoch interval
 IHR_list = cell(size(allsubLabel));
 RRI_list = cell(size(allsubLabel));
-WDFA_list = cell(size(allsubLabel));
-WDFA_curves = cell(size(allsubLabel)); %four combination n and sigma
+%WDFA_list = cell(size(allsubLabel));
+%WDFA_curves = cell(size(allsubLabel)); %four combination n and sigma
 RRI_res_list = cell(size(allsubLabel));
 s = round(len_epoch/len_orig/2);
 for i =1:N_sub
