@@ -22,7 +22,7 @@ vec = 1:w;
 
 coeff = arrayfun(@(j) polyfit(vec',y(bin(j) + vec),order),1:n,'uni',0);
 y_hat = cell2mat(cellfun(@(y) polyval(y,vec),coeff,'uni',0));
-P  = (y - y_hat').^2;
+P = (y - y_hat').^2;
 P = cumsum(P).^0.5;
 
 end
