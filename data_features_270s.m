@@ -8,7 +8,7 @@ clear all;
 %%
 load('./data/allsubPPG_fs200_test.mat');
 load('./data/allsubLabel_test.mat');
-load('./processed_data.mat')
+load('./data/processed_data.mat')
 %addpath('../SST_TF_analysis/TF_anaylsis');
 addpath('./lib')
 %% Data parsing--------------------------------------
@@ -44,31 +44,32 @@ n_features = 61;
 %% Parse the data to epoch interval
 IHR_list = cell(size(allsubLabel));
 RRI_list = cell(size(allsubLabel));
-%WDFA_list = cell(size(allsubLabel));
-%WDFA_curves = cell(size(allsubLabel)); %four combination n and sigma
+% WDFA_list = cell(size(allsubLabel));
+% WDFA_curves = cell(size(allsubLabel)); %four combination n and sigma
 RRI_res_list = cell(size(allsubLabel));
 s = round(len_epoch/len_orig);
 for i =1:N_sub
     i
+    slabel = ceil(s/2);
     %PPG
     PPG_data{i} = buffer(allsubPPG{i},fs*len_epoch,fs*(len_epoch-len_orig))';
-    PPG_data{i} = PPG_data{i}(s:end,:);
+    PPG_data{i} = PPG_data{i}(slabel:end,:);
     %Label
-    slabel = ceil(s/2);
+    
     PPG_label{i} = allsubLabel{i};
     %Index (Unused = 0, Used = 1)
     index = ones(size(allsubLabel{i}));
     index([1:slabel-1 end-slabel+2:end]) = 0;
     PPG_label_index{i} = index;
-    
+     
     %IHR
     IHR_list{i} = buffer(IHR_data{i},len_epoch*4,(len_epoch-len_orig)*4)';
-    IHR_list{i} = IHR_list{i}(s:end,:);
+    IHR_list{i} = IHR_list{i}(slabel:end,:);
     %TBD temp. In correspond to IHR(end-12:end) =0 in data_parsing.m
     %IHR_list{i}(1,1:12) = 1;IHR_list{i}(end,end-12:end) = 1;
     
 %     % Get WDFA curve from RRI_res_data
-     RRI_res = RRI_res_data{i};
+%     RRI_res = RRI_res_data{i};
 %     WDFA_curves{i} = cell([4,1]);
 %     WDFA_curves{i}{1} = WDFA_fun(RRI_res,30,30,1);
 %     WDFA_curves{i}{2} = WDFA_fun(RRI_res,30,90,1);
@@ -78,12 +79,12 @@ for i =1:N_sub
 %     WDFA_list{i} = cell([4,1]);
 %     for j = 1:4
 %         WDFA_list{i}{j} = buffer(WDFA_curves{i}{j},len_epoch,(len_epoch-len_orig))';
-%         WDFA_list{i}{j} = WDFA_list{i}{j}(s:end,:);
+%         WDFA_list{i}{j} = WDFA_list{i}{j}(slabel:end,:);
 %     end
     
     % RRI_res_list for teager energy
     RRI_res_list{i} = buffer(RRI_res,len_epoch,(len_epoch-len_orig))';
-    RRI_res_list{i} = RRI_res_list{i}(s:end,:);
+    RRI_res_list{i} = RRI_res_list{i}(slabel:end,:);
     
     % RRI
     RRI_list{i} = cell(size(PPG_label{i}));

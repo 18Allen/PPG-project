@@ -13,7 +13,7 @@ load('./data/processed_data.mat')
 addpath('./lib')
 %% Data parsing--------------------------------------
 %% Set parameters
-N_sub = 2;%size(allsubLabel,1);
+N_sub = size(allsubLabel,1);
 PPG_data = cell(size(allsubLabel));
 PPG_label = cell(size(allsubLabel));
 PPG_label_index = cell(size(allsubLabel));
@@ -61,7 +61,7 @@ for i =1:N_sub
     index = ones(size(allsubLabel{i}));
     index([1:slabel-1 end-slabel+2:end]) = 0;
     PPG_label_index{i} = index;
-    
+     
     %IHR
     IHR_list{i} = buffer(IHR_data{i},len_epoch*4,(len_epoch-len_orig)*4)';
     IHR_list{i} = IHR_list{i}(slabel:end,:);
