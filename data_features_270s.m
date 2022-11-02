@@ -6,8 +6,8 @@ clear all;
 %     writematrix(RRI_data{i}, ['sub_',num2str(i),'.txt'], 'Delimiter', 'space');
 % end
 %%
-load('./data/allsubPPG_fs200_test.mat');
-load('./data/allsubLabel_test.mat');
+load('./data/allsubPPG_fs200.mat');
+load('./data/allsubLabel.mat');
 load('./data/processed_data.mat')
 %addpath('../SST_TF_analysis/TF_anaylsis');
 addpath('./lib')
@@ -83,7 +83,7 @@ for i =1:N_sub
 %     end
     
     % RRI_res_list for teager energy
-    RRI_res_list{i} = buffer(RRI_res,len_epoch,(len_epoch-len_orig))';
+    RRI_res_list{i} = buffer(RRI_res_data{i},len_epoch,(len_epoch-len_orig))';
     RRI_res_list{i} = RRI_res_list{i}(slabel:end,:);
     
     % RRI
@@ -104,18 +104,20 @@ end
 %%  Analysis
 fs2 = 4; % For frequency features
 for l= 1:N_sub
+    l
     features{l} = zeros([size(allsubLabel{l},1),n_features]);
 
     freqFeature = [];
     for f = 1:4  %f stands for HF, LF, VLF and LF2HF
         tmp = buffer(adapt_RRfreq{l}{f}, fs2*len_epoch, fs2*(len_epoch-len_orig));
-        tmp = tmp(:, s:end-s+1);
+        tmp = tmp(:, slabel:end-slabel+1);
         freqFeature = [median(tmp); freqFeature];
     end
     
     for m = find(PPG_label_index{l} > 0).'
-        m
+        % m
         RRI = RRI_list{l}{m};
+        IHR = IHR_list{l}(m,:);
         RRI_res = RRI_res_list{l}(m,:);
 
         len = length(IHR);
@@ -131,8 +133,8 @@ for l= 1:N_sub
         features{l}(m,1:44) = getTraditionalHRVtime(RRI,diff(RRI));
 
         %% Traditional frequency domain feature (10)
-        features{l}(m,45:48) = freqFeature(:,m)';
-        features{l}(m,49:52) = [HFpower LFpower VLFpower LF2HFratio];
+        features{l}(m,45:48) = freqFeature(:,m-slabel+1)';
+        features{l}(m,49:52) = [HFpow   er LFpower VLFpower LF2HFratio];
         % mean repository freq and power
         [power, ff] = max(specIHR); ff = ff/len*fs2;
         features{l}(m,53) = ff;
@@ -185,6 +187,5 @@ for l= 1:N_sub
         features{l}(m,58) = std(te);
     end
     save('features&labels.mat','features','PPG_label','PPG_label_index');
-
 end
 clear WDFAs

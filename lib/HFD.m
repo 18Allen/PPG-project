@@ -30,6 +30,5 @@ end
 
 b = polyfit(lnk, lnLK, 1);
 hfd = b(1);
-disp(hfd);
 
 end
