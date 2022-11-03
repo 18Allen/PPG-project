@@ -1,5 +1,5 @@
 %% Workspace Hygiene
-clear all;
+clear;
 %% Load data, tools
 % mkdir './txt_data';
 % for i = 1:30
@@ -34,9 +34,9 @@ upsampling_rate = 500; % For PPG_peak_detection
 
 % Generated feature
 features = cell([n_class,1]);
-n_features = 61; 
+n_features = 70;
 % 1~44 Traditional time, 45~54 Traditional freq (2 HFpole features left),
-% 55 ApEn, 56 Higuchi fractal dimension, 57~58 teager energy
+% 55 ApEn, 56 Higuchi fractal dimension, 57~58 teager energy, 59~65 
 % DFA, PDFA and WDFA see other programs
 
 % Temp function
@@ -103,7 +103,7 @@ end
 
 %%  Analysis
 fs2 = 4; % For frequency features
-for l= 1:N_sub
+for l= 26:N_sub
     l
     features{l} = zeros([size(allsubLabel{l},1),n_features]);
 
@@ -134,7 +134,7 @@ for l= 1:N_sub
 
         %% Traditional frequency domain feature (10)
         features{l}(m,45:48) = freqFeature(:,m-slabel+1)';
-        features{l}(m,49:52) = [HFpow   er LFpower VLFpower LF2HFratio];
+        features{l}(m,49:52) = [HFpower LFpower VLFpower LF2HFratio];
         % mean repository freq and power
         [power, ff] = max(specIHR); ff = ff/len*fs2;
         features{l}(m,53) = ff;
@@ -172,7 +172,7 @@ for l= 1:N_sub
 %         features{l}(m,59) = p(1);
         
         %% ApEn of binary RRI diff in a interval of TBD (right now 5 min)
-        features{l}(m,56) = ApEn(1,0.2*std(diff(RRI) > 0),diff(RRI) > 0,1);
+        features{l}(m,56) = ApEn(1,0.2*std(diff(RRI) > 0), diff(RRI) > 0,1);
         %features{l}(m,24) = ApEn(1,0.2 > 0),diff(RRI) > 0,1);
     
         %% WDFA feature
@@ -181,10 +181,23 @@ for l= 1:N_sub
 %         WDFAs{j} = WDFA_list{l}{j}(m,:);
 %         features{l}(m,55+j) = max(WDFAs{j});
 %         end
-        %% Teager energy
+        %% Teager energy (2)
         te = teager_energy_func(RRI_res);
         features{l}(m,57) = mean(te);
         features{l}(m,58) = std(te);
+
+        %% Visibility graph (7)
+        % [deg_mean, deg_std, ast, per_low, per_high, cc_mean, cc_std] = VG_func(RRI);
+        features{l}(m,59:65) = VG_func(RRI);
+
+        %% Arousal probability (1)
+        if isempty(find(isnan(RRI)))
+            ap = arousal_prob_func(RRI);
+            features{l}(m,66:70) = [max(ap), mean(ap), median(ap), min(ap), std(ap)];
+        else
+            features{l}(m,66:70) = nan;
+        end
+
     end
     save('features&labels.mat','features','PPG_label','PPG_label_index');
 end

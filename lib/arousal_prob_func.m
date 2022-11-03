@@ -5,7 +5,7 @@ function [ap] = arousal_prob(RRI)
 RRI = 60*(1./RRI); % to bmp
 median_RR = [];
 for i = 46:length(RRI)-44
-median_RR = [median_RR, median(RRI(i-45:i+44))];
+    median_RR = [median_RR, median(RRI(i-45:i+44))];
 end
 %%
 % calculate the difference

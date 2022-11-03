@@ -1,4 +1,4 @@
-function [deg_mean, deg_std,ast, per_low, per_high,cc_mean, cc_std] = VG_func(RRI)
+function [deg_mean, deg_std, ast, per_low, per_high, cc_mean, cc_std] = VG_func(RRI)
 
     %% 
     % build connection
