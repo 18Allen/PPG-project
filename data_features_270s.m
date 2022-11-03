@@ -103,7 +103,7 @@ end
 
 %%  Analysis
 fs2 = 4; % For frequency features
-for l= 26:N_sub
+for l= 1:N_sub
     l
     features{l} = zeros([size(allsubLabel{l},1),n_features]);
 
