@@ -173,14 +173,15 @@ for l= 1:N_sub
         
         %% ApEn of binary RRI diff in a interval of TBD (right now 5 min)
         features{l}(m,56) = ApEn(1,0.2*std(diff(RRI) > 0), diff(RRI) > 0,1);
-        %features{l}(m,24) = ApEn(1,0.2 > 0),diff(RRI) > 0,1);
-    
+        % features{l}(m,24) = ApEn(1,0.2 > 0),diff(RRI) > 0,1);
+        
         %% WDFA feature
 %         WDFAs = cell([4,1]);
 %         for j = 1:4
 %         WDFAs{j} = WDFA_list{l}{j}(m,:);
 %         features{l}(m,55+j) = max(WDFAs{j});
 %         end
+
         %% Teager energy (2)
         te = teager_energy_func(RRI_res);
         features{l}(m,57) = mean(te);
