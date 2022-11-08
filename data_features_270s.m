@@ -36,8 +36,9 @@ upsampling_rate = 500; % For PPG_peak_detection
 features = cell([n_class,1]);
 n_features = 70;
 % 1~44 Traditional time, 45~54 Traditional freq (2 HFpole features left),
-% 55 ApEn, 56 Higuchi fractal dimension, 57~58 teager energy, 59~65 
-% DFA, PDFA and WDFA see other programs
+% 55 ApEn, 56 Higuchi fractal dimension, 57~58 teager energy,
+% 59~65 Visibility graph, 66~70 Arousal probability.
+% DFA, PDFA and WDFA see other programs.
 
 % Temp function
 %extract = cell([n_class,1]);
