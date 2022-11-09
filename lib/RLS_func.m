@@ -27,10 +27,16 @@ for i =p:N
      error_list(i-p+1) = abs(e);
      rts = roots([-1;flip(w)]);
      newrts = rts(imag(rts) > 0);
+     if i > 2*p
      [val, idx] = min(real(rts(imag(rts) > 0)));
-     HFroots(i) = newrts(idx);
+        if isempty(idx)
+            HFroots(i) = 0;
+        else
+            HFroots(i) = newrts(idx);
+        end
+     end
 end
 %%
-mean_phase = mean(angle(HFroots(p:end)));
-mean_module = mean(abs(HFroots(p:end));
+mean_phase = mean(angle(HFroots(p+1:end)));
+mean_module = mean(abs(HFroots(p+1:end)));
 end
