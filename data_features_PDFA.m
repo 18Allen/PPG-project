@@ -136,6 +136,10 @@ for l= 1:N_sub
         p = polyfit(linspace(0,1,64), P, 1);
         features{l}(m,1) = p(1);
 
+        %% Roots 
+        % The original one said we should use RRI in 30s, but I think that
+        % does not make a huge difference. 
+        features{l}(m,2:3) = RLS_func(RRI(end-29,end));
         %% WDFA feature
 %         WDFAs = cell([4,1]);
 %         for j = 1:4
