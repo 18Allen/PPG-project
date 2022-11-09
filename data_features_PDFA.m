@@ -34,7 +34,7 @@ upsampling_rate = 500; % For PPG_peak_detection
 
 % Generated feature
 features = cell([n_class,1]);
-n_features = 1;
+n_features = 3;
 % 1~3 DFA, 4~7 WDFA
 % (See 'data_features_270s.m') 1~44 Traditional time, 45~54 Traditional freq (2 HFpole features left),
 % 55 ApEn, 56 Higuchi fractal dimension, 57~58 teager energy
@@ -69,7 +69,7 @@ for i =1:N_sub
     %IHR_list{i}(1,1:12) = 1;IHR_list{i}(end,end-12:end) = 1;
     
 %     % Get WDFA curve from RRI_res_data
-%     RRI_res = RRI_res_data{i};
+    RRI_res = RRI_res_data{i};
 %     WDFA_curves{i} = cell([4,1]);
 %     WDFA_curves{i}{1} = WDFA_fun(RRI_res,30,30,1);
 %     WDFA_curves{i}{2} = WDFA_fun(RRI_res,30,90,1);
@@ -103,10 +103,11 @@ end
 
 %%  Analysis
 for l= 1:N_sub
+    l
     features{l} = zeros([size(PPG_data{l},1),n_features]);
     for m = find(PPG_label_index{l} > 0)'
-        m
         RRI = RRI_list{l}{m};
+        RRI(isnan(RRI)) = 0;
     
         %% DFA features
 %         % select scale for the whole DFA
@@ -139,7 +140,7 @@ for l= 1:N_sub
         %% Roots 
         % The original one said we should use RRI in 30s, but I think that
         % does not make a huge difference. 
-        features{l}(m,2:3) = RLS_func(RRI(end-29,end));
+        features{l}(m,[2 3]) = RLS_func(RRI(end-29:end));
         %% WDFA feature
 %         WDFAs = cell([4,1]);
 %         for j = 1:4
