@@ -38,9 +38,9 @@ locs_data = cell([N_sub,1]);
 IHR_data = cell([N_sub,1]);
 RRI_data = cell([N_sub,1]);
 RRI_res_data = cell([N_sub,1]);
-tfr_data = cell([N_sub,1]);
-tfrtic_data = cell([N_sub,1]);
 adapt_RRfreq = cell([N_sub,1]);
+HIAV_data = cell([N_sub,1]);
+HIAV_locs_data = cell([N_sub,1]);
 
 %%  TF analysis
 for l= 1:N_sub
@@ -53,7 +53,19 @@ for l= 1:N_sub
     [~,orig_locs,~,~] = PPG_peakdetection2(pleth,upsampling_rate);
     [aRRI,locs,~,~] = RRI_adjust_new(diff(orig_locs)/upsampling_rate,0.4,2,orig_locs(1)/upsampling_rate,upsampling_rate);
     RRI = diff(locs)./upsampling_rate;
-    
+
+    %% HIAV as respiratory
+    [upper,~,~,~] = PPG_peakdetection2(PPG,sampling_rate);
+    [lower,~,~,~] = PPG_peakdetection2(-PPG,sampling_rate);
+    HIAV = zeros(1,length(upper));
+    for i = 1:length(HIAV)
+        a = find(lower >= upper(i));
+        if isempty(a); break; end
+        HIAV(i) = PPG(upper(i))-PPG(lower(a(1)));
+    end
+    HIAV_locs = upper(1:i-1);
+    HIAV = HIAV(1:i-1);
+
     %% Use entropy to classify bad signal segment of len_orig long
     len_orig = 10;
     test_PPG = buffer(allsubPPG{l},len_orig*sampling_rate)';
@@ -64,6 +76,7 @@ for l= 1:N_sub
     for j = 1:size(test_PPG,1)
        [~,entropy_list(j)] = SQI_eval(test_PPG(j,:),sampling_rate*len_orig,sampling_rate*len_orig);
     end
+
     %%
     % Make idx_bad_RRI
     bad_list = find(entropy_list < threshold_entropy);
@@ -75,7 +88,7 @@ for l= 1:N_sub
         idx = locs > (j-1)*len_orig*upsampling_rate & locs <= (j)*len_orig*upsampling_rate;
         test_RRI(idx(1:end-1)|idx(2:end)) = 0;
     end
-%     % Plot bad segments
+    % Plot bad segments
 %     figure
 %     plot(linspace(0,length(allsubPPG{l})/sampling_rate,length(allsubPPG{l})),allsubPPG{l});
 %     hold on
@@ -88,6 +101,7 @@ for l= 1:N_sub
 %     ylabel('PPG')
 %     title(strcat('bad segments(10s) of subject ', num2str(l),' PPG'))
 %     legend('PPG','bad seg')
+
     %%
     % Imputation
     len_pad = 240; %In index, which is around +- 5min
@@ -108,14 +122,14 @@ for l= 1:N_sub
         % range: pad |s_RRI~t_RRI| 5 for alpha in imputation and we don't
         % take too much info from the future data
         range_imp = (len_pad+s_RRI)-len_pad:(len_pad+t_RRI)+5;
-%         range_imp = (len_pad+s_RRI)-len_pad:(len_pad+t_RRI)+len_pad;
+        % range_imp = (len_pad+s_RRI)-len_pad:(len_pad+t_RRI)+len_pad;
         sig = test_RRI(range_imp);
         sig([(len_pad+1):(len_pad+length(cal_list))]) = 0;
         [sig] = imputation(sig,1);
         Imp_RRI(cal_list) = sig([(len_pad+1):(len_pad+length(cal_list))]);
         test_RRI(len_pad+cal_list) = sig([(len_pad+1):(len_pad+length(cal_list))]);
     end
-%     % Plot 
+    % Plot 
 %     figure
 %     plot(RRI)
 %     hold on
@@ -128,12 +142,14 @@ for l= 1:N_sub
     RRI = Imp_RRI;
     clear test_RRI sig cal_list idx Imp_RRI bad_list idx_bad range_imp test_PPG
     clear entropy_list idx_bad_cycles
+
     %%
     % IHR
     IF = 1./RRI;
     xx = 1:(upsampling_rate/4):length(pleth);
     IHR = spline(locs,[IF,IF(end)],xx);
     IHR(1:12) = 1;IHR(end-12:end) = 1;
+
     %% RR_res for WDFA
     % WDFA requires to take the sample 
     IF = RRI;
@@ -142,7 +158,7 @@ for l= 1:N_sub
     RRI_res(1:80) = 1;RRI_res(end-80:end) = 1;
     RRI_res = RRI_res(1:20:end);
     
-     %% STFT of whole night IHR
+    %% STFT of whole night IHR
     IHRtmp = IHR - mean(IHR);
     fs_STFT = 4;
     LowFreq = 0.001/fs_STFT;
@@ -150,16 +166,13 @@ for l= 1:N_sub
     fr = 0.001;% 
     [h, Dh, ~] = hermf(30*sampling_rate+1, 1, 5);
     [tfr,tfrtic,~,~] = sqSTFTbase(IHRtmp.', LowFreq, HighFreq, fr/fs_STFT, 1, h(1,:)', Dh(1,:)', 0);
-    
-    tfr_data{l} = tfr;
-    tfrtic_data{l} = tfrtic;
+
     %% Get bounded-adaptive(b_) HF,LF,VLF,HF/LF
     Total = sum(abs(tfr));
 
     Indx = find(tfrtic*fs_STFT>= 0.15 & tfrtic*fs_STFT< 0.4);
     [~,HF_loc] = max(abs(tfr(Indx,:)));
     adapt_HF = sum(abs(tfr(Indx(1)-1+HF_loc-0.05/fr:Indx(1)-1+HF_loc+0.05/fr,:)))./Total;
-
 
     Indx = find(tfrtic*fs_STFT>= 0.04 & tfrtic*fs_STFT< 0.15);
     [~,LF_loc] = max(abs(tfr(Indx,:)));
@@ -175,19 +188,18 @@ for l= 1:N_sub
 
     adapt_LF2HF = adapt_LF./adapt_HF;
     adapt_RRfreq{l} = {adapt_HF; adapt_LF; adapt_VLF; adapt_LF2HF};
-    %%
 
-    %%
-    % location of R peaks
+    %% location of R peaks
     orig_locs_data{l} = orig_locs;
     locs_data{l} = locs;
     IHR_data{l} = IHR;
     RRI_data{l} = RRI;
     RRI_res_data{l} = RRI_res;
+    HIAV_data{l} = HIAV;
+    HIAV_locs_data{l} = HIAV_locs;
 
-%%
-
-%    save('processed_data.mat','orig_locs_data','locs_data','IHR_data','RRI_data','tfr_data','tfrtic_data');
-    save('processed_data.mat','orig_locs_data','locs_data','IHR_data','RRI_data','adapt_RRfreq','RRI_res_data');
+    %% save
+    % save('processed_data.mat','orig_locs_data','locs_data','IHR_data','RRI_data','tfr_data','tfrtic_data');
+    % save('processed_data.mat','orig_locs_data','locs_data','IHR_data','RRI_data','adapt_RRfreq','RRI_res_data');
 
 end
