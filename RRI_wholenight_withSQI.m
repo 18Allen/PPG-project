@@ -54,7 +54,7 @@ for l= 1:N_sub
     [aRRI,locs,~,~] = RRI_adjust_new(diff(orig_locs)/upsampling_rate,0.4,2,orig_locs(1)/upsampling_rate,upsampling_rate);
     RRI = diff(locs)./upsampling_rate;
 
-    %% HIAV as respiratory
+    %% (respiratory-induced amplitude variation) RIAV as respiratory
     [upper,~,~,~] = PPG_peakdetection2(PPG,sampling_rate);
     [lower,~,~,~] = PPG_peakdetection2(-PPG,sampling_rate);
     HIAV = zeros(1,length(lower));
