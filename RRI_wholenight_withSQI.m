@@ -57,13 +57,13 @@ for l= 1:N_sub
     %% HIAV as respiratory
     [upper,~,~,~] = PPG_peakdetection2(PPG,sampling_rate);
     [lower,~,~,~] = PPG_peakdetection2(-PPG,sampling_rate);
-    HIAV = zeros(1,length(upper));
+    HIAV = zeros(1,length(lower));
     for i = 1:length(HIAV)
-        a = find(lower >= upper(i));
+        a = find(upper >= lower(i));
         if isempty(a); break; end
-        HIAV(i) = PPG(upper(i))-PPG(lower(a(1)));
+        HIAV(i) = PPG(upper(a(1)))-PPG(lower(i));
     end
-    HIAV_locs = upper(1:i-1);
+    HIAV_locs = lower(1:i-1);
     HIAV = HIAV(1:i-1);
 
     %% Use entropy to classify bad signal segment of len_orig long
