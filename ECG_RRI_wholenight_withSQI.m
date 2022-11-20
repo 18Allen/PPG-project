@@ -51,14 +51,14 @@ for l= 1:N_sub
     filtered = filtfilt(b, a, ECG);
     pleth = resample(filtered,upsampling_rate,sampling_rate);
     %only use trough to determine cycle. 
-    pleth_p = (pleth -abs(pleth))/2;
-    orig_locs = RpeakUltraLong(pleth_p,upsampling_rate);
+    %pleth_p = (pleth -abs(pleth))/2;
+    orig_locs = RpeakUltraLong(pleth,upsampling_rate);
     % 
     locs = orig_locs(pleth(orig_locs) < prctile(pleth(orig_locs),97));
     [aRRI,locs,~,~] = RRI_adjust_new(diff(orig_locs)/upsampling_rate,0.4,2,orig_locs(1)/upsampling_rate,upsampling_rate);
     RRI = diff(locs)./upsampling_rate;
 
-%     %% (respiratory-induced amplitude variation) RIAV as respiratory
+     %% (respiratory-induced amplitude variation) RIAV as respiratory
 %     [upper,~,~,~] = PPG_peakdetection2(ECG,sampling_rate);
 %     [lower,~,~,~] = PPG_peakdetection2(-ECG,sampling_rate);
 %     HIAV = zeros(1,length(lower));
@@ -71,10 +71,10 @@ for l= 1:N_sub
 %     HIAV = HIAV(1:i-1);
 
     %% Use entropy to classify bad signal segment of len_orig long
-    len_orig = 10;
+    len_orig = 5;
     test_ECG = buffer(allsubECG{l},len_orig*sampling_rate)';
     entropy_list = zeros([1,size(test_ECG,1)]);
-    threshold_entropy = 0.0676;
+    threshold_entropy = 0.0; % around 4%, but can only work for signal absent cases, other are non-significant
     
     % Mark loc with bad entropy
     for j = 1:size(test_ECG,1)
