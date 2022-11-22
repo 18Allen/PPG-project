@@ -122,6 +122,7 @@ for l= 1:N_sub
         RRI_res = RRI_res_list{l}(m,:);
 
         len = length(IHR);
+        IHR = IHR - mean(IHR);
         specIHR = abs(fft(IHR)/len);
         PS = specIHR(1:len/2+1); PS(2:len/2) = 2*specIHR(2:len/2);
         VLF = 0.04; LF = 0.15; HF = 0.4;
