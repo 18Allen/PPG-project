@@ -174,9 +174,18 @@ for l= 1:N_sub
 %         features{l}(m,59) = p(1);
         
         %% ApEn of binary RRI diff in a interval of TBD (right now 5 min)
-        features{l}(m,56) = ApEn(1,0.2*std(diff(RRI) > 0), diff(RRI) > 0,1);
+        % N = 5 in the paper. 
+        dRRI = diff(RRI);
+        n_BinApEn = floor(length(dRRI)/5);
+        seg = buffer(dRRI(1:n_BinApEn*5),5);
+        avg_BinApEn = 0;
+        for i = 1:n_BinApEn
+            avg_BinApEn = avg_BinApEn + ApEn(1,0.2,seg(:,i))/n_BinApEn;
+        end
+        features{l}(m,56) = avg_BinApEn;
+        %features{l}(m,56) = ApEn(1,0.2*std(diff(RRI) > 0), diff(RRI) > 0,1);
         % features{l}(m,24) = ApEn(1,0.2 > 0),diff(RRI) > 0,1);
-        
+        clear dRRI  n_BinApEn seg avg_BinApEn
         %% WDFA feature
 %         WDFAs = cell([4,1]);
 %         for j = 1:4
