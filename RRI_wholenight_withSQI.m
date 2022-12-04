@@ -66,21 +66,22 @@ for l= 1:N_sub
     HIAV_locs = lower(1:i-1);
     HIAV = HIAV(1:i-1);
 
-    %% Use entropy to classify bad signal segment of len_orig long
-    len_orig = 10;
-    test_PPG = buffer(allsubPPG{l},len_orig*sampling_rate)';
-    entropy_list = zeros([1,size(test_PPG,1)]);
-    threshold_entropy = 0.0676;
+    %% Use PSD to classify bad signal segment of len_orig long
+    len_orig = 30;
+    test_PPG = buffer(allsubPPG{l}, len_orig*sampling_rate).';
+    Q_list = zeros([1,size(test_PPG,1)]);
+    threshold = 0.4;
     
     % Mark loc with bad entropy
     for j = 1:size(test_PPG,1)
-       [~,entropy_list(j)] = SQI_eval(test_PPG(j,:),sampling_rate*len_orig,sampling_rate*len_orig);
+       % [~,entropy_list(j)] = SQI_eval(test_PPG(j,:),sampling_rate*len_orig,sampling_rate*len_orig);
+        Q_list(j) = ppgSQI(test_PPG(j,:), sampling_rate);
     end
 
     %%
     % Make idx_bad_RRI
     bad_list = find(entropy_list < threshold_entropy);
-    idx_bad_cycles = zeros(size(locs_data{l}));
+    % idx_bad_cycles = zeros(size(locs_data{l}));
     
     % Set RRI in those segment to 0 for imputation
     test_RRI = RRI;

@@ -1,8 +1,8 @@
 %% Workspace Hygiene
 clear;
 %% Load data, tools
-load('./data/ECG/allsubECG_fs200_test.mat');
-load('./data/ECG/allsubLabel_test.mat');
+load('./data/ECG/allsubECG_fs200.mat');
+load('./data/ECG/allsubLabel.mat');
 
 %load('./data/ECG/allsubECG_trouble.mat');
 %load('./data/allsubLabel_trouble.mat');
@@ -39,8 +39,8 @@ IHR_data = cell([N_sub,1]);
 RRI_data = cell([N_sub,1]);
 RRI_res_data = cell([N_sub,1]);
 adapt_RRfreq = cell([N_sub,1]);
-HIAV_data = cell([N_sub,1]);
-HIAV_locs_data = cell([N_sub,1]);
+% HIAV_data = cell([N_sub,1]);
+% HIAV_locs_data = cell([N_sub,1]);
 
 %%  TF analysis
 for l= 1:N_sub
@@ -76,7 +76,7 @@ for l= 1:N_sub
     entropy_list = zeros([1,size(test_ECG,1)]);
     threshold_entropy = 0.0; % around 4%, but can only work for signal absent cases, other are non-significant
     
-    % Mark loc with bad entropy
+    % Mark loc with bad 
     for j = 1:size(test_ECG,1)
        [~,entropy_list(j)] = SQI_eval(test_ECG(j,:),sampling_rate*len_orig,sampling_rate*len_orig);
     end
@@ -187,11 +187,10 @@ for l= 1:N_sub
         end
     end
     adapt_LF = sum(abs(tfr(Indx(1)-1+LF_loc-0.05/fr:Indx(1)-1+LF_loc+0.05/fr,:)))./Total;
-    
     adapt_VLF = sum(abs(tfr(0.003/fr:Indx(1)-1+LF_loc-0.05/fr,:)))./Total;
-
     adapt_LF2HF = adapt_LF./adapt_HF;
     adapt_RRfreq{l} = {adapt_HF; adapt_LF; adapt_VLF; adapt_LF2HF};
+    clear tfr tfrtic;
 
     %% location of R peaks
     orig_locs_data{l} = orig_locs;
@@ -199,11 +198,11 @@ for l= 1:N_sub
     IHR_data{l} = IHR;
     RRI_data{l} = RRI;
     RRI_res_data{l} = RRI_res;
-    HIAV_data{l} = HIAV;
-    HIAV_locs_data{l} = HIAV_locs;
+%     HIAV_data{l} = HIAV;
+%     HIAV_locs_data{l} = HIAV_locs;
 
     %% save
     % save('processed_data.mat','orig_locs_data','locs_data','IHR_data','RRI_data','tfr_data','tfrtic_data');
-    % save('processed_data.mat','orig_locs_data','locs_data','IHR_data','RRI_data','adapt_RRfreq','RRI_res_data');
+    save('./data/ECG/processed_data.mat','orig_locs_data','locs_data','IHR_data','RRI_data','adapt_RRfreq','RRI_res_data');
 
 end
