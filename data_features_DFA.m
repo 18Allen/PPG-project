@@ -1,15 +1,20 @@
 %% Workspace Hygiene
-% clear all;
+clear;
 %% Load data, tools
 % mkdir './txt_data';
 % for i = 1:30
 %     writematrix(RRI_data{i}, ['sub_',num2str(i),'.txt'], 'Delimiter', 'space');
 % end
 %%
-load('./data/allsubPPG_fs200_test.mat');
-load('./data/allsubLabel_test.mat');
-load('./data/processed_data.mat')
-%addpath('../SST_TF_analysis/TF_anaylsis');
+% For ECG
+% load('./data/ECG/allsubECG_fs200.mat');
+% load('./data/ECG/allsubLabel.mat');
+% load('./data/ECG/processed_data.mat');
+% For PPG
+load('./data/allsubPPG_fs200.mat');
+load('./data/allsubLabel.mat');
+load('./data/processed_data.mat');
+% addpath('../SST_TF_analysis/TF_anaylsis');
 addpath('./lib')
 %% Data parsing--------------------------------------
 %% Set parameters
@@ -34,7 +39,7 @@ upsampling_rate = 500; % For PPG_peak_detection
 
 % Generated feature
 features = cell([n_class,1]);
-n_features = 3;
+n_features = 7;
 % 1~3 DFA, 4~7 WDFA
 % (See 'data_features_270s.m') 1~44 Traditional time, 45~54 Traditional freq (2 HFpole features left),
 % 55 ApEn, 56 Higuchi fractal dimension, 57~58 teager energy
@@ -51,9 +56,10 @@ s = round(len_epoch/len_orig);
 for i =1:N_sub
     i
     slabel = ceil(s/2);
-    %PPG
+    % PPG
     PPG_data{i} = buffer(allsubPPG{i},fs*len_epoch,fs*(len_epoch-len_orig))';
-    PPG_data{i} = PPG_data{i}(slabel:end,:);
+    % PPG_data{i} = buffer(allsubECG{i},fs*len_epoch,fs*(len_epoch-len_orig))';
+    PPG_data{i} = PPG_data{i}(s:end,:);
     %Label
     
     PPG_label{i} = allsubLabel{i};
@@ -64,7 +70,7 @@ for i =1:N_sub
      
     %IHR
     IHR_list{i} = buffer(IHR_data{i},len_epoch*4,(len_epoch-len_orig)*4)';
-    IHR_list{i} = IHR_list{i}(slabel:end,:);
+    IHR_list{i} = IHR_list{i}(s:end,:);
     %TBD temp. In correspond to IHR(end-12:end) =0 in data_parsing.m
     %IHR_list{i}(1,1:12) = 1;IHR_list{i}(end,end-12:end) = 1;
     
@@ -84,7 +90,7 @@ for i =1:N_sub
     
     % RRI_res_list for teager energy
     RRI_res_list{i} = buffer(RRI_res,len_epoch,(len_epoch-len_orig))';
-    RRI_res_list{i} = RRI_res_list{i}(slabel:end,:);
+    RRI_res_list{i} = RRI_res_list{i}(s:end,:);
     
     % RRI
     RRI_list{i} = cell(size(PPG_label{i}));
@@ -98,16 +104,21 @@ for i =1:N_sub
 %                 [linspace(1,(300-length(RRI_list{i}{j}))+1,(300-length(RRI_list{i}{j}))*2+1 ),(300-length(RRI_list{i}{j}))+2:length(RRI_list{i}{j})]);
 %         end 
     end
-    
+    RRI_list{i} = RRI_list{i}(slabel:end-slabel+1); % notice: start from slabel
 end
 
 %%  Analysis
-for l= 1:N_sub
-    features{l} = zeros([size(PPG_data{l},1),n_features]);
+for l = 1:N_sub
+    features{l} = zeros([size(allsubLabel{l},1), n_features]);
 
+%     qual = Quality{l};
     for m = find(PPG_label_index{l} > 0).'
-        %m
-        RRI = RRI_list{l}{m};
+        % m
+        if length(RRI_list{l}{m})<165 %|| ~(qual(m-floor(s/2))<prctile(qual,95))
+            features{l}(m,:) = nan;
+            continue;
+        end
+        RRI = RRI_list{l}{m-slabel+1};
     
         %% DFA features
         % select scale for the whole DFA
@@ -133,7 +144,7 @@ for l= 1:N_sub
         features{l}(m,3) = alpha2;
         
         %% PDFA
-%         P = PDFA(RRI(end-63:end),64,1);
+        % P = PDFA(RRI(end-63:end),64,1);
 %         p =  polyfit(linspace(0,1,64), P, 1);
 %         features{l}(m,54) = p(1);
         
@@ -145,7 +156,8 @@ for l= 1:N_sub
         end
 
     end
-    save('features&labels_DFA.mat','features','PPG_label','PPG_label_index');
+%     save('./data/ECG/features&labels_DFA.mat','features','PPG_label','PPG_label_index');
+%     save('features&labels_DFA.mat','features','PPG_label','PPG_label_index');
 
 end
 clear WDFAs

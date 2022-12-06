@@ -1,4 +1,4 @@
-function output = getHRVpart1(RRI, dRRI);
+function output = getTraditionalHRVtime(RRI, dRRI)
 % time domain features
             IHR = 1./RRI;
             dtrIHR = detrend(IHR);
@@ -11,6 +11,10 @@ function output = getHRVpart1(RRI, dRRI);
             mean_dtrRRI = mean(dtrRRI);
             median_RRI = median(RRI);
             median_dtrRRI = median(dtrRRI);
+
+            % mean IHR
+            mean_IHR = mean(IHR);
+            mean_dtrIHR = mean(dtrIHR);
             
             % Percentile
             quantiles = [];
@@ -72,7 +76,7 @@ function output = getHRVpart1(RRI, dRRI);
 %             SD2 = sqrt( 2*SDNN.^2 - SDSD.^2 ./ 2 );
             
             %% (Modified) vectorized for better processing
-            output = [mean_RRI, mean_dtrRRI, median_RRI, median_dtrRRI,...
+            output = [mean_IHR, mean_dtrIHR, mean_RRI, mean_dtrRRI, median_RRI, median_dtrRRI,...
                         SDNN, rangeRRI, RMSSD, SDSD, pNN50, MAD_RRI,...
                      SDNN_dtrRRI, range_dtrRRI, RMSSD_dtrRRI,SDSD_dtrRRI, pNN50_dtrRRI, MAD_dtrRRI,...
                      quantiles];
