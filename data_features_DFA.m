@@ -85,7 +85,7 @@ for i =1:N_sub
     WDFA_list{i} = cell([4,1]);
     for j = 1:4
         WDFA_list{i}{j} = buffer(WDFA_curves{i}{j},len_epoch,(len_epoch-len_orig))';
-        WDFA_list{i}{j} = WDFA_list{i}{j}(slabel:end,:);
+        WDFA_list{i}{j} = WDFA_list{i}{j}(s:end,:);
     end
     
     % RRI_res_list for teager energy
@@ -114,10 +114,10 @@ for l = 1:N_sub
 %     qual = Quality{l};
     for m = find(PPG_label_index{l} > 0).'
         % m
-        if length(RRI_list{l}{m})<165 %|| ~(qual(m-floor(s/2))<prctile(qual,95))
-            features{l}(m,:) = nan;
-            continue;
-        end
+%         if length(RRI_list{l}{m})<165 %|| ~(qual(m-floor(s/2))<prctile(qual,95))
+%             features{l}(m,:) = nan;
+%             continue;
+%         end
         RRI = RRI_list{l}{m-slabel+1};
     
         %% DFA features
@@ -151,13 +151,13 @@ for l = 1:N_sub
         %% WDFA feature
         WDFAs = cell([4,1]);
         for j = 1:4
-            WDFAs{j} = WDFA_list{l}{j}(m,:);
+            WDFAs{j} = WDFA_list{l}{j}(m-slabel+1,:);
             features{l}(m,3+j) = max(WDFAs{j});
         end
 
     end
 %     save('./data/ECG/features&labels_DFA.mat','features','PPG_label','PPG_label_index');
-%     save('features&labels_DFA.mat','features','PPG_label','PPG_label_index');
+    save('./features&labels_DFA.mat','features','PPG_label','PPG_label_index');
 
 end
 clear WDFAs
