@@ -39,7 +39,7 @@ vec = 1:w;
 
 coeff = arrayfun(@(j) polyfit(vec',y(bin(j) + vec),order),1:n,'uni',0);
 y_hat = cell2mat(cellfun(@(y) polyval(y,vec),coeff,'uni',0));
-zn = y - y_hat';
+zn = (y - y_hat').^2;
 mu1 = cumsum(zn);
 mu2 = cumsum(zn.^2);
 
