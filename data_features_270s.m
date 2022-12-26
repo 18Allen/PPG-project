@@ -227,7 +227,8 @@ for l = 1:N_sub
             features{l}(m,68:72) = nan;
             continue;
         end
-        ap = arousal_prob_func(RRI);
+        % Arousal probability of normalized RRI
+        ap = arousal_prob_func(RRI/mean(RRI));
         if isempty(ap)
             features{l}(m,68:72) = nan;
             continue;
