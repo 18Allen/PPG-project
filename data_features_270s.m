@@ -1,26 +1,33 @@
 %% Workspace Hygiene
 clear;
 %% Load data, tools
-% mkdir './txt_data';
-% for i = 1:30
-%     writematrix(RRI_data{i}, ['sub_',num2str(i),'.txt'], 'Delimiter', 'space');
-% end
-%%
+datapath = 'C:/Users/scien/Documents/TIDIS project/SST/toNengTai/toNengTai/data/';
+load([datapath, '/allsubLabel.mat']);
+% load([datapath, '/allsubLabel_normal.mat']);
+allsubPPG = {};
+% Load PPG
+PPG_data_files = string(ls([datapath, '/allsubPPG_*.mat']));
+% PPG_data_files = string(ls([datapath, '/allsubPPG_normal.mat']));
+for i = 1:size(PPG_data_files,1)
+    load([datapath, PPG_data_files{i}]);
+    allsubPPG = [allsubPPG; Channels];
+end
+
 % For ECG
 % load('./data/ECG/allsubECG_fs200.mat');
 % load('./data/ECG/allsubLabel.mat');
 % load('./data/ECG/processed_data.mat');
-% For PPG
-load('./data/allsubPPG_fs200.mat');
-load('./data/allsubLabel.mat');
+
+% load preprocessed RRI
 load('./data/processed_data.mat');
+load('./data/processed_data_FLOW.mat');
 
 % addpath('../SST_TF_analysis/TF_anaylsis');
 addpath('./lib')
 %% Data parsing--------------------------------------
 %% Set parameters
 N_sub = size(allsubLabel,1);
-PPG_data = cell(size(allsubLabel));
+% PPG_data = cell(size(allsubLabel));
 PPG_label = cell(size(allsubLabel));
 PPG_label_index = cell(size(allsubLabel));
 
@@ -40,41 +47,48 @@ upsampling_rate = 500; % For PPG_peak_detection
 
 % Generated feature
 features = cell([N_sub,1]);
-n_features = 73;
+n_features = 74;
 % 1~46 Traditional time, 47~56 Traditional freq (2 HFpole features left),
 % 57 ApEn, 58 Higuchi fractal dimension, 59~60 teager energy,
-% 61~67 Visibility graph, 69~72 Arousal probability, 73 PSD quality.
+% 61~67 Visibility graph, 68~72 Arousal probability,
+% 73 cardiopulmanory coupling, 74 PSD quality.
 % DFA, PDFA and WDFA see other programs.
 
 % Temp function
 % extract = cell([n_class,1]);
 %% Parse the data to epoch interval
-IHR_list = cell(size(allsubLabel));
-RRI_list = cell(size(allsubLabel));
+% IHR_list = cell(size(allsubLabel));
+% RRI_list = cell(size(allsubLabel));
 % WDFA_list = cell(size(allsubLabel));
 % WDFA_curves = cell(size(allsubLabel)); %four combination n and sigma
-RRI_res_list = cell(size(allsubLabel));
+% RRI_res_list = cell(size(allsubLabel));
+% FLOW_list = cell(size(allsubLabel));
 s = round(len_epoch/len_orig);
-for i =1:N_sub
-    i
+fs2 = 4; % For frequency features
+for l = 1:N_sub
+    l
     slabel = ceil(s/2);
     % PPG
-    PPG_data{i} = buffer(allsubPPG{i},fs*len_epoch,fs*(len_epoch-len_orig))';
+    PPG_data = buffer(allsubPPG{l},fs*len_epoch,fs*(len_epoch-len_orig))';
     % PPG_data{i} = buffer(allsubECG{i},fs*len_epoch,fs*(len_epoch-len_orig))';
-    PPG_data{i} = PPG_data{i}(s:end,:);
-    %Label
-    
-    PPG_label{i} = allsubLabel{i};
+    PPG_data = PPG_data(s:end,:);
+
+    % Label
+    PPG_label{l} = allsubLabel{l};
     %Index (Unused = 0, Used = 1)
-    index = ones(size(allsubLabel{i}));
+    index = ones(size(allsubLabel{l}));
     index([1:slabel-1 end-slabel+2:end]) = 0;
-    PPG_label_index{i} = index;
+    PPG_label_index{l} = index;
      
-    %IHR
-    IHR_list{i} = buffer(IHR_data{i},len_epoch*4,(len_epoch-len_orig)*4)';
-    IHR_list{i} = IHR_list{i}(s:end,:);
+    % IHR
+    IHR_list = buffer(IHR_data{l},len_epoch*4,(len_epoch-len_orig)*4)';
+    IHR_list = IHR_list(s:end,:);
     %TBD temp. In correspond to IHR(end-12:end) =0 in data_parsing.m
     %IHR_list{i}(1,1:12) = 1;IHR_list{i}(end,end-12:end) = 1;
+
+    % FLOW
+    FLOW_list = buffer(FLOW{l},len_epoch*4,(len_epoch-len_orig)*4)';
+    FLOW_list = FLOW_list(s:end,:);
     
     % Get WDFA curve from RRI_res_data
 %     RRI_res = RRI_res_data{i};
@@ -91,27 +105,23 @@ for i =1:N_sub
 %     end
     
     % RRI_res_list for teager energy
-    RRI_res_list{i} = buffer(RRI_res_data{i},len_epoch,(len_epoch-len_orig))';
-    RRI_res_list{i} = RRI_res_list{i}(s:end,:);
+    RRI_res_list = buffer(RRI_res_data{l},len_epoch,(len_epoch-len_orig))';
+    RRI_res_list = RRI_res_list(s:end,:);
     
     % RRI
-    RRI_list{i} = cell(size(PPG_label{i}));
-    for j = 1:length(PPG_label{i})
-        idx = find(locs_data{i} > (-(len_epoch-len_orig)/2 + (j-1)*len_orig)*upsampling_rate & locs_data{i} <= ((len_epoch-len_orig)/2+(j)*len_orig)*upsampling_rate);
-        RRI_list{i}{j} = RRI_data{i}(idx(1:end-1));     
+    RRI_list = cell(size(PPG_label{l}));
+    for j = 1:length(PPG_label{l})
+        idx = find(locs_data{l} > (-(len_epoch-len_orig)/2 + (j-1)*len_orig)*upsampling_rate & locs_data{l} <= ((len_epoch-len_orig)/2+(j)*len_orig)*upsampling_rate);
+        RRI_list{j} = RRI_data{l}(idx(1:end-1));     
         % Apply change if less than 300 RRI in an epoch
 %         if length(RRI_list{i}{j}) < 300
 %             RRI_list{i}{j} = interp1(1:length(RRI_list{i}{j}),RRI_list{i}{j},...
 %                 [linspace(1,(300-length(RRI_list{i}{j}))+1,(300-length(RRI_list{i}{j}))*2+1 ),(300-length(RRI_list{i}{j}))+2:length(RRI_list{i}{j})]);
 %         end 
     end
-    RRI_list{i} = RRI_list{i}(slabel:end-slabel+1); % notice: start from slabel
-end
+    RRI_list = RRI_list(slabel:end-slabel+1); % notice: start from slabel
 
-%%  Analysis
-fs2 = 4; % For frequency features
-for l = 1:1%N_sub
-    l
+    %% Analysis
     features{l} = zeros([size(allsubLabel{l},1), n_features]);
 
     freqFeature = [];
@@ -120,18 +130,25 @@ for l = 1:1%N_sub
         tmp = tmp(:, s:end);
         freqFeature = [median(tmp); freqFeature];
     end
-    
-    % qual = Quality{l};
+
     for m = find(PPG_label_index{l} > 0).'
-        % Quality
-        if (length(RRI_list{l}{m})<150) % || ~(qual(m-floor(s/2))<prctile(qual,95))
-            features{l}(m,:) = nan;
+        m
+        RRI = RRI_list{m-slabel+1};
+        IHR = IHR_list(m-slabel+1,:);
+        RRI_res = RRI_res_list(m-slabel+1,:);
+        flow_filt = FLOW_list(m-slabel+1,:);
+        PPG = PPG_data(m-slabel+1,:);
+
+        %% Quality
+        PPG_cut = buffer(PPG, 10*sampling_rate).';
+        qual = zeros(len_epoch/10, 1);
+        for c = 1:len_epoch/10
+            qual(c) = ppgSQI(PPG_cut(c,:), sampling_rate);
+            % disp(qual(c));
+        end
+        if sum(qual>0.5)<21
             continue;
         end
-        % m
-        RRI = RRI_list{l}{m-slabel+1};
-        IHR = IHR_list{l}(m-slabel+1,:);
-        RRI_res = RRI_res_list{l}(m-slabel+1,:);
 
         %% Traditional frequency domain feature (10)
         len = length(IHR);
@@ -187,8 +204,8 @@ for l = 1:1%N_sub
         
         %% ApEn of binary RRI diff in a interval of TBD (right now 5 min)
         features{l}(m,58) = ApEn(5, 0.2*std(diff(RRI)>0), diff(RRI)>0, 1);
-        % features{l}(m,24) = ApEn(1,0.2 > 0),diff(RRI) > 0,1);
-        
+        % rri = diff(RRI)>0; (TBD)
+
         %% WDFA feature
 %         WDFAs = cell([4,1]);
 %         for j = 1:4
@@ -205,7 +222,7 @@ for l = 1:1%N_sub
         % [deg_mean, deg_std, ast, per_low, per_high, cc_mean, cc_std] = VG_func(RRI);
         features{l}(m,61:67) = VG_func(RRI);
 
-        %% Arousal probability (1)
+        %% Arousal probability (5)
         if ~isempty(find(isnan(RRI)))
             features{l}(m,68:72) = nan;
             continue;
@@ -217,12 +234,15 @@ for l = 1:1%N_sub
         end
         features{l}(m,68:72) = [max(ap), mean(ap), median(ap), min(ap), std(ap)];
 
+        %% Cardiopulmanory coupling
+        features{l}(m,73) = CPcoupling(IHR, flow_filt, 4);
+
         %% Quality as a feature
-        features{l}(m,73) = ppgSQI(PPG_data{l}(m-slabel+1,:), sampling_rate);
+        features{l}(m,74) = mean(qual);
         % = SQI_eval(PPG_data{l}(m,:), length(PPG_data{l}(m,:)), length(PPG_data{l}(m,:)));
 
     end
-    % save('features&labels.mat','features','PPG_label','PPG_label_index');
+    % save('./features&labels.mat','features','PPG_label','PPG_label_index');
     % save('./data/ECG/features&labels.mat','features','PPG_label','PPG_label_index');
 end
 clear WDFAs
