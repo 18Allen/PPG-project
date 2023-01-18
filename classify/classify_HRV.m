@@ -173,11 +173,11 @@ end
         [~, cm{i}, ~, ~] = confusion(y(cvp.testStore{i}, :)', validationScores');
         toc
     
-        for j = 1:length(label{i})
-            if label{i}(j,1) == pred(j,1)
-                storage{i,1} = [storage{i,1}; j validationScores(j,:)];
-            end
-        end
+%         for j = 1:length(label{i})
+%             if label{i}(j,1) == pred(j,1)
+%                 storage{i,1} = [storage{i,1}; j validationScores(j,:)];
+%             end
+%         end
         disp(sum(diag(cm{i}))/sum(cm{i}(:)));
     end
     
