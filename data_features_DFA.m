@@ -28,7 +28,7 @@ len_epoch = 330; %in second, 5 min
 len_orig = 30;
 
 % basic parameters for STFT 
-sampling_rate = 200;
+sampling_rate = 200; 
 
 % Loop parameters
 n_class = 5;
