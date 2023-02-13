@@ -1,7 +1,7 @@
 %% Load the features & labels & subject partition
 load('predictors&label.mat') % N_sub,labelmat,predictors,subjectId
 %% Create Partition data for cross-validation
-%cvp = cvpartition(cell2mat(subjectId),'Kfold',N_sub);
+cvp = cvpartition(cell2mat(subjectId),'Kfold',N_sub);
 %% 3/4 class
 % 3 class
 N_class = 3;
@@ -32,23 +32,25 @@ template = templateKernel('Learner','svm','BlockSize',2e3,'Verbose',0,'KernelSca
 %   NumExpansionDimensions: 4096
 %               KernelScale: 5.1315
 
+% The RANDOM CVP one (WRONG partition)
 % Mdl = fitcecoc(predictors,label, ...
 %         'Learners', template, ...
 %         'Coding', 'onevsone', ...
 %         'ClassNames', (1:size(t,2)).',...
 %         'CVPartition',cvp,...
-%         'Verbose',1);
+%         'Verbose',1, ... 
+%         'Options',statset('UseParallel',true));
 %%
 % load('KernelModel_3class.mat') 
-%%
-cm = cell([sub,1]);
-matsub = cell2mat(subjectId);
-for i = 1:sub
-    [pred, validationScores] = predict(Mdl.Trained{i}, predictors(matsub == i, :));
-    [~, cm{i}, ~, ~] = confusion(t(matsub==i, :)', validationScores');
-    disp(sum(diag(cm{i}))/sum(cm{i}(:)));
-end
-%%
+%% Random cvp test
+% cm = cell([sub,1]);
+% matsub = cell2mat(subjectId);
+% for i = 1:sub
+%     [pred, validationScores] = predict(Mdl.Trained{i}, predictors(matsub == i, :));
+%     [~, cm{i}, ~, ~] = confusion(t(matsub==i, :)', validationScores');
+%     disp(sum(diag(cm{i}))/sum(cm{i}(:)));
+% end
+%% Valid way of doing onevsone
 % %
 % % Mdl= fitcecoc(predictors,label,'Learner','kernel','OptimizeHyperparameters','auto','HyperparameterOptimizationOptions', ...
 % %     struct('CVPartition',cvp,'Verbose',1,'UseParallel',true,'ShowPlots',false,'AcquisitionFunctionName','expected-improvement-plus'));
@@ -80,7 +82,8 @@ for i = 1:sub
         'Learners', template, ...
         'Coding', 'onevsone', ...
         'Verbose',1,...
-        'ClassNames', (1:size(t,2)).');%,...
+        'ClassNames', (1:size(t,2)).', ...
+        'Options',statset('UseParallel',true));%,...
 %         'OptimizeHyperparameters','auto','HyperparameterOptimizationOptions', ...
 %      struct('Verbose',1,'UseParallel',false,'ShowPlots',false,...
 %      'MaxObjectiveEvaluations',400,'AcquisitionFunctionName','expected-improvement-plus'));   
@@ -93,7 +96,7 @@ for i = 1:sub
     disp(sum(diag(cm{i}))/sum(cm{i}(:)));
 end
 
-%% statistics
+    %% statistics
    
     ConfMat = zeros(size(t,2));
     for i = 1:sub

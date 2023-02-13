@@ -1,6 +1,7 @@
 clear
 %%
-load('./data/features_labels.mat'); features1 = features; % For 270 sec, 71 features
+%load('./data/features_labels.mat'); features1 = features; % For 270 sec, 69 features
+load('./data/features&labels_time_resample.mat'); features1 = features; % For 270 sec, 74 features
 load('./data/features_labels_MSE.mat'); features2 = features; % For 510 sec, 20 features
 load('./data/features_labels_DFA.mat'); features3 = features; % For 330 sec, 7 features
 % load('./toNengTai_HRV/features&labels_MMA.mat'); features4 = features; % For 510 sec, 54 features
@@ -14,9 +15,15 @@ for sub = 1:N_sub
     features{sub} = cell(N,1);
     bad = 0;
     for ep = 9:N-9+1
-        qual = features1{sub}(ep,69);
-        tmp = [features1{sub}(ep,:) features2{sub}(ep,:) features3{sub}(ep, [2 4:end]) features5{sub}(ep,:)];% features4{sub}(ep-8,:)];
+        % nth beat index feature
+        %qual = features1{sub}(ep,69);
+        %tmp = [features1{sub}(ep,:) features2{sub}(ep,:) features3{sub}(ep, [2 4:end]) features5{sub}(ep,:)];% features4{sub}(ep-8,:)];
 %         tmp = [features4{sub}(ep-8,:)];
+        
+        % time resample index feature
+        qual = features1{sub}(ep,74);
+        features1{sub}(ep,61:67) = old_features1{sub}(ep,61:67);
+        tmp = [features1{sub}(ep,:) features2{sub}(ep,:) features3{sub}(ep, [2 4:end]) features5{sub}(ep,:)];% features4{sub}(ep-8,:)];
         if sum(isnan(tmp))==0 && qual>0.41
             features{sub}{ep} = tmp;
         else
